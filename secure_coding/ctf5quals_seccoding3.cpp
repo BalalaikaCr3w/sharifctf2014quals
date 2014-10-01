@@ -7,15 +7,16 @@
 int main()
 {
 	WCHAR *text;
-	WCHAR temp[1000];
-	WCHAR temp2[1000];
+	WCHAR temp[1001] = { 0 };
+	WCHAR temp2[1001] = { 0 };
 
 	printf("  WI  \n");
 	printf("------\n");
 	printf("\n");
 
 	int size = 1024;
-	text = (WCHAR *)realloc(NULL, size << 1);
+	//text = (WCHAR *)realloc(NULL, size << 1);
+	text = (WCHAR *)calloc(1, (size << 1) + 2);
 	text[0] = 0;
 
 	int curl = 1;
@@ -24,9 +25,9 @@ int main()
 	while (-1)
 	{
 		printf("%d: ", curl);
-
-		wscanf(L"%[a-zA-Z0-9?,.!()%:- ]", temp);
-		fgetws(temp2, sizeof(temp2), stdin);
+		memset(temp, 0, 1001);
+		wscanf(L"%1000[a-zA-Z0-9?,.!()%:- ]", temp);
+		fgetws(temp2, (sizeof(temp2)/ sizeof(temp2[0])) - 1, stdin); //NORMAL MAY BE
 
 		if (wcscmp(temp, L":done") == 0)
 			break;
@@ -34,11 +35,14 @@ int main()
 		if (wcsncmp(temp, L":line ", 6) == 0)
 		{
 			swscanf(temp + 6, L"%d", &curl);
+			if (curl < 0) return -2;
+			if (curl >= (size << 1)) return -3;
 			if (curl == 0)
 				curl = 1;
 
 			ptr = text;
 			for (int i = 0; i < curl; ptr++)
+			//for (int i = 0; i < curl || i < sizeof(text) / sizeof(text[0]); ptr++)
 				if (*ptr == L'\n')
 					i++;
 
@@ -54,10 +58,10 @@ int main()
 			if (ptr2 == NULL)
 				break;
 
-			if (ptr2[1] == L'%')
+			if (ptr2[1] == L'%')  //%%???
 			{
 				for (int i = 0; i < wcslen(ptr2); i++)
-					ptr2[i] = ptr2[i+1];
+					ptr2[i] = ptr2[i+1];  //1????
 				ptr2--;
 			}
 			else if (ptr2[1] == L'l')
